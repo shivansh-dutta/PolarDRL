@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+.venv/
+.uv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.DS_Store
+
+# Downloaded datasets can be large and are reproducible from datasets/README.md
+datasets/*.raw
+datasets/raw/
+datasets/*.txt
+datasets/*.mtx
+datasets/*.gz
+
+# Local scratch
+*.ipynb_checkpoints/
+.env
