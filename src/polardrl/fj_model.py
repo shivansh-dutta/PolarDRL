@@ -15,22 +15,17 @@ import scipy.sparse as sp
 
 def laplacian(adjacency: sp.spmatrix) -> sp.spmatrix:
     """Graph Laplacian L = D - A for an undirected graph given by its adjacency matrix."""
-    raise NotImplementedError(
-        "TODO: L = D - A, with D = diag(row sums of adjacency). "
-        "See Concepts/Forest Matrix.md for how L feeds into Omega."
-    )
+    degrees = np.asarray(adjacency.sum(axis=1)).flatten()
+    return sp.diags(degrees) - adjacency
 
 
 def forest_matrix(adjacency: sp.spmatrix) -> np.ndarray:
     """Omega = (I + L)^-1 -- the doubly stochastic forest matrix (Concepts/Forest Matrix.md)."""
-    raise NotImplementedError(
-        "TODO: compute L via laplacian(), then invert (I + L). "
-        "For large n this O(n^3) inversion is exactly what FASTGREEDY's COMP "
-        "subroutine (see fastgreedy.py) is built to avoid -- keep this exact "
-        "version for SPGREEDY and small-network validation only."
-    )
+    n = adjacency.shape[0]
+    l = laplacian(adjacency)
+    return np.linalg.inv((sp.eye(n) + l).toarray())
 
 
 def equilibrium_opinions(adjacency: sp.spmatrix, s: np.ndarray) -> np.ndarray:
     """z = Omega @ s -- the equilibrium expressed-opinion vector (Concepts/Friedkin-Johnsen Model.md)."""
-    raise NotImplementedError("TODO: z = forest_matrix(adjacency) @ s")
+    return forest_matrix(adjacency) @ s

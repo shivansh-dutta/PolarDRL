@@ -17,3 +17,6 @@ datasets/*.gz
 # Local scratch
 *.ipynb_checkpoints/
 .env
+
+# Generated reproduction outputs (regenerate via scripts/reproduce_fig1.py)
+results/

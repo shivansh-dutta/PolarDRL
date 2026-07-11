@@ -16,17 +16,24 @@ from __future__ import annotations
 import numpy as np
 import scipy.sparse as sp
 
+from . import fj_model
+
 
 def disagreement(adjacency: sp.spmatrix, s: np.ndarray) -> float:
     """D(G) = s^T Omega L Omega s. See fj_model.py for Omega and L."""
-    raise NotImplementedError("TODO: implement via fj_model.forest_matrix + fj_model.laplacian")
+    z = fj_model.equilibrium_opinions(adjacency, s)
+    l = fj_model.laplacian(adjacency)
+    return float(z @ (l @ z))
 
 
 def polarization(adjacency: sp.spmatrix, s: np.ndarray) -> float:
     """P(G) = s_bar^T Omega^2 s_bar, with s_bar the mean-centered internal opinion vector."""
-    raise NotImplementedError("TODO: mean-center s, then s_bar^T Omega^2 s_bar")
+    s_bar = s - s.mean()
+    omega = fj_model.forest_matrix(adjacency)
+    z_bar = omega @ s_bar
+    return float(z_bar @ z_bar)
 
 
 def pd_index(adjacency: sp.spmatrix, s: np.ndarray) -> float:
     """I(G) = P(G) + D(G). The scalar objective minimized by adding edges."""
-    raise NotImplementedError("TODO: polarization(adjacency, s) + disagreement(adjacency, s)")
+    return polarization(adjacency, s) + disagreement(adjacency, s)

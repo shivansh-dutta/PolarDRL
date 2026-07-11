@@ -31,7 +31,6 @@ def path_graph_4():
     return adjacency, s
 
 
-@pytest.mark.skip(reason="pd_index.py is a stub -- unskip once implemented")
 def test_pd_index_is_nonnegative(path_graph_4):
     adjacency, s = path_graph_4
     value = pd_index.pd_index(adjacency, s)
