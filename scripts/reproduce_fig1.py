@@ -28,28 +28,11 @@ from polardrl import baselines, datasets, fastgreedy, opinions, pd_index, spgree
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 PAPER_RESULTS_DIR = Path(__file__).resolve().parent.parent / "paper_results"
-REFERENCE_CSV = PAPER_RESULTS_DIR / "figure1_reference_values.csv"
 K_MAX = 8
 N_CANDIDATES = 30
 FASTGREEDY_EPSILON = 0.3  # paper's small-network default (Sec 7)
 # One seed per (network, distribution) pair for reproducibility.
 BASE_SEED = 20260709
-
-
-def load_reference_values() -> dict[tuple[str, str], dict[int, float]]:
-    """
-    Delta I(G) values read visually off Zhu et al. 2021's Figure 1 pixels
-    (see paper_results/README.md) -- approximate, not exact numbers the
-    paper publishes as text. Keyed by (network, distribution) -> {k: value}.
-    """
-    if not REFERENCE_CSV.exists():
-        return {}
-    reference: dict[tuple[str, str], dict[int, float]] = {}
-    with REFERENCE_CSV.open() as f:
-        for row in csv.DictReader(f):
-            key = (row["network"], row["distribution"])
-            reference.setdefault(key, {})[int(row["k"])] = float(row["delta_i_optimum_approx"])
-    return reference
 
 
 def delta_i(adjacency, s, edges: list[tuple[int, int]]) -> float:
@@ -198,15 +181,18 @@ def write_csv(rows: list[dict]) -> None:
 def write_plot(rows: list[dict]) -> None:
     """
     4 networks x 3 distributions grid (matches the paper's own Figure 1
-    layout), each panel showing our Optimum/SPGREEDY/FASTGREEDY/Random curves
-    plus, where available, the paper's own curve read visually off Figure 1's
-    pixels (dashed gray) as a qualitative shape/order-of-magnitude check --
-    not an exact-match target, since our opinion draw and candidate-edge
-    sample are necessarily different from the paper's unpublished ones.
+    layout), each panel showing our Optimum/SPGREEDY/FASTGREEDY/Random curves.
+
+    The paper's own curve (read visually off Figure 1's pixels) is
+    deliberately not overlaid here: since our opinion draw and candidate-edge
+    sample are necessarily different from the paper's unpublished ones, and
+    |E_C|=30 is a small fraction of the non-edge pool, that comparison isn't
+    apples-to-apples (see paper_results/README.md's "Numeric offset" writeup)
+    -- it was removed after concluding it invited a misleading comparison
+    rather than a meaningful sanity check.
     """
     networks = list(datasets.LOADERS.keys())
     distributions = list(opinions.GENERATORS.keys())
-    reference = load_reference_values()
 
     fig, axes = plt.subplots(len(networks), len(distributions), figsize=(13, 15))
 
@@ -227,18 +213,6 @@ def write_plot(rows: list[dict]) -> None:
                 values = [next(r[method] for r in panel_rows if r["k"] == k) for k in ks]
                 ax.plot(ks, values, marker=marker, label=method, markersize=4)
 
-            ref = reference.get((net_name, dist_name))
-            if ref:
-                ref_ks = sorted(ref)
-                ax.plot(
-                    ref_ks,
-                    [ref[k] for k in ref_ks],
-                    linestyle="--",
-                    color="gray",
-                    label="paper (visual est.)",
-                    linewidth=1,
-                )
-
             if row_idx == 0:
                 ax.set_title(dist_name)
             if col_idx == 0:
@@ -249,8 +223,7 @@ def write_plot(rows: list[dict]) -> None:
                 ax.legend(fontsize=7)
 
     fig.suptitle(
-        "Figure 1 reproduction vs paper (dashed): Delta I(G) vs k, "
-        "4 networks x 3 opinion distributions"
+        "Figure 1 reproduction: Delta I(G) vs k, 4 networks x 3 opinion distributions"
     )
     fig.tight_layout()
     path = RESULTS_DIR / "fig1_reproduction.png"

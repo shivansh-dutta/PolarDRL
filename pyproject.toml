@@ -11,6 +11,16 @@ dependencies = [
     "matplotlib>=3.8",
 ]
 
+[project.optional-dependencies]
+# Phase 4 (DRL agent) only -- CPU-only PyTorch, hand-rolled GNN, no
+# torch-geometric. Install via:
+#   uv pip install -e ".[drl]" --extra-index-url https://download.pytorch.org/whl/cpu
+# (this machine has no NVIDIA GPU; the CPU wheel avoids pulling ~2.5GB of
+# unused CUDA libraries that the default PyPI torch wheel bundles).
+drl = [
+    "torch>=2.2",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
